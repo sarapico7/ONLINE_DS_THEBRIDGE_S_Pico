@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from omniplot  import plot as op
 import pandas as pd
+from scipy.stats import pearsonr
 import seaborn as sns
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
@@ -158,6 +159,7 @@ def scatter_plots_aggregated(df, col_num1="age_2016"):
     plt.show()
 
 
+
 def calculate_correlation_regression(df, col_num1="age_2016"):
     """
     Calculates correlations and regression parameters for a numerical column
@@ -168,13 +170,13 @@ def calculate_correlation_regression(df, col_num1="age_2016"):
     col_num1 (str): Name of the first numerical column for the X-axis (default is "age_2016").
 
     Returns:
-    pd.DataFrame: DataFrame containing correlations and regression parameters.
+    pd.DataFrame: DataFrame containing correlations, p-values, and regression parameters.
     """
     # Filter numerical columns
     numeric_cols = df.select_dtypes(include=np.number).columns
 
     # Create a DataFrame to store correlations and regression parameters
-    results_df = pd.DataFrame(columns=['Column1', 'Column2', 'Correlation', 'Regression_Coeff', 'Intercept'])
+    results_df = pd.DataFrame(columns=['Column1', 'Column2', 'Correlation', 'P_Value', 'Regression_Coeff', 'Intercept'])
 
     for col_num2 in numeric_cols:
         if col_num2 != col_num1:
@@ -190,16 +192,21 @@ def calculate_correlation_regression(df, col_num1="age_2016"):
                 reg_model.fit(X, y)
                 y_pred = reg_model.predict(X)
 
+                # Calculate correlation and p-value
+                correlation, p_value = pearsonr(X.squeeze(), y)
+
                 # Store results in the DataFrame
                 results_df = pd.concat([results_df, pd.DataFrame({
                     'Column1': [col_num1],
                     'Column2': [col_num2],
-                    'Correlation': [df_filtered.corr().iloc[0, 1]],
+                    'Correlation': [correlation],
+                    'P_Value': [p_value],
                     'Regression_Coeff': [reg_model.coef_[0]],
                     'Intercept': [reg_model.intercept_]
                 })], ignore_index=True)
 
     return results_df
+
 
 
 
@@ -279,7 +286,7 @@ def scatter_plots_aggregated_with_categorical(df, col_num1="age_2016", col_cat=N
 
 def calculate_correlation_regression_with_categorical(df, col_num1="age_2016", col_cat=None):
     """
-    Calculates correlations and regression parameters for a numerical column
+    Calculates correlations, p-values, and regression parameters for a numerical column
     compared with all other numerical columns in the DataFrame, grouped by a categorical column.
 
     Args:
@@ -288,7 +295,7 @@ def calculate_correlation_regression_with_categorical(df, col_num1="age_2016", c
     col_cat (str): Name of the categorical column for grouping (default is None).
 
     Returns:
-    pd.DataFrame: DataFrame containing correlations and regression parameters.
+    pd.DataFrame: DataFrame containing correlations, p-values, and regression parameters.
     """
     # Filter numerical columns
     numeric_cols = df.select_dtypes(include=np.number).columns
@@ -298,7 +305,7 @@ def calculate_correlation_regression_with_categorical(df, col_num1="age_2016", c
         df = df[df[col_cat].notnull()]  # Drop rows with null values in the selected categorical column
 
         # Create a DataFrame to store correlations and regression parameters
-        results_df = pd.DataFrame(columns=['Column1', 'Column2', 'Category', 'Correlation', 'Regression_Coeff', 'Intercept'])
+        results_df = pd.DataFrame(columns=['Column1', 'Column2', 'Category', 'Correlation', 'P_Value', 'Regression_Coeff', 'Intercept'])
 
         # Iterate over unique categories in the categorical column
         for category in df[col_cat].unique():
@@ -322,17 +329,22 @@ def calculate_correlation_regression_with_categorical(df, col_num1="age_2016", c
                         reg_model.fit(X, y)
                         y_pred = reg_model.predict(X)
 
+                        # Calculate correlation and p-value
+                        correlation, p_value = pearsonr(X.squeeze(), y)
+
                         # Store results in the DataFrame
                         results_df = pd.concat([results_df, pd.DataFrame({
                             'Column1': [col_num1],
                             'Column2': [col_num2],
                             'Category': [category],
-                            'Correlation': [np.corrcoef(X.T, y)[0, 1]],
+                            'Correlation': [correlation],
+                            'P_Value': [p_value],
                             'Regression_Coeff': [reg_model.coef_[0]],
                             'Intercept': [reg_model.intercept_]
                         })], ignore_index=True)
 
         return results_df
+
 
 
 def filter_and_extract_values(df, column_name, threshold, corresponding_column):
