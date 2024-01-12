@@ -20,6 +20,9 @@ I have added a /data_description folder with information acquired from each of t
 
 - /data: contains all the data used and generated along the EDA.
 - /memoria: contains a detailed summary of all the steps followed during the EDA.
-- /notebooks: contains preprocessing, cleaning and analysis jupyter notebooks using for this EDA.
+- /notebooks: contains preprocessing, cleaning and analaysis jupyter notebooks using for this EDA.
 - /utils: contains
 - Presentation in PDF with the results of the EDA project.
+
+
+
